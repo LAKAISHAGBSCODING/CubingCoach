@@ -64,15 +64,28 @@ Catatan:
 
 ## Memakai smart cube
 
-1. Klik **Hubungkan kubus**, lalu pilih kubus di jendela Bluetooth.
-2. Klik **Buat acakan** dan acak kubus sesuai teks acakan (20 gerakan).
-3. Klik **Mulai solve**. Timer mulai pada putaran pertama dan **berhenti otomatis** saat kubus solved.
-   Tombol **Selesai** bisa dipakai untuk mengakhiri secara manual.
+1. Klik tombol koneksi sesuai merek kubus, lalu pilih kubus di jendela Bluetooth:
 
-**Deteksi selesai otomatis.** Program membaca posisi stiker langsung dari kubus (QiYi mengirimnya setiap putaran),
-jadi tidak perlu menekan apa pun. Untuk kubus yang tidak mengirim posisi stiker, tekan **Kubus sudah solved**
-saat kubus fisik dalam keadaan solved, agar program bisa melacak putarannya. Tombol yang sama juga me-reset
-tampilan 3D.
+   | Tombol | Kubus | Library |
+   |---|---|---|
+   | **Hubungkan kubus** | QiYi, GAN 356i generasi awal, GoCube, Giiker, Heykube | `cubing` |
+   | **Hubungkan GAN** | GAN model baru (Gen2/Gen3/Gen4): i Carry, i Carry S, i Carry 2, i 3, GAN12 ui, GAN14 ui, Monster Go 3Ai, MoYu AI 2023 | `gan-web-bluetooth` |
+
+   Kubus GAN butuh **MAC address** untuk membuka enkripsi datanya. Program mencoba membacanya otomatis; jika gagal,
+   program meminta MAC address diisi sekali (lihat di aplikasi GAN atau daftar perangkat Bluetooth di HP), lalu
+   menyimpannya di browser.
+2. Klik **Buat acakan**. Kotak pemandu menampilkan **gerakan berikutnya** (besar, dengan panah arah putaran).
+   Setiap kali kubus diputar, langkah berikutnya muncul otomatis. Jika salah putar, pemandu meminta
+   gerakan itu dibatalkan dulu.
+3. Setelah acakan selesai, timer **langsung siap** dan mulai pada putaran pertama. Timer **berhenti otomatis**
+   saat kubus solved, lalu muncul layar perayaan (waktu, gerakan, TPS, skor, konfeti).
+   Tombol **Mulai solve** / **Selesai** tetap bisa dipakai secara manual.
+
+**Gambar 3D mengikuti posisi kubus.** Program membaca posisi stiker dari sensor kubus (QiYi dan GAN mengirimnya),
+lalu gambar 3D dan pelacakan program disamakan otomatis, jadi tidak ada tombol yang wajib ditekan.
+Tombol **Gambar salah? Reset** hanya untuk koreksi: tekan saat kubus di tangan sedang solved tetapi gambar
+3D menunjukkan posisi lain (catatan posisi di dalam kubus melenceng). Timer berhenti jika sensor kubus
+**atau** pelacakan program menyatakan solved.
 
 **Statistik yang diambil dari solve.** Waktu dihitung dari timestamp tiap putaran (memakai jam kubus jika tersedia):
 

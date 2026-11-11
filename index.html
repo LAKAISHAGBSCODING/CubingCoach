@@ -33,11 +33,30 @@
           </div>
           <p id="bt-status" class="status" data-jenis="info" role="status" aria-live="polite">Belum terhubung.</p>
           <div class="tombol-baris">
-            <button type="button" id="btn-hubung" class="btn utama">Hubungkan kubus</button>
-            <button type="button" id="btn-solved" class="btn" disabled>Kubus sudah solved</button>
+            <button type="button" id="btn-hubung" class="btn utama" title="QiYi, GAN 356i lama, GoCube, Giiker, Heykube">Hubungkan kubus</button>
+            <button type="button" id="btn-hubung-gan" class="btn" title="GAN model baru: i Carry, i Carry 2, i 3, GAN12 ui, GAN14 ui, dll.">Hubungkan GAN</button>
             <button type="button" id="btn-acak" class="btn">Buat acakan</button>
+            <button type="button" id="btn-solved" class="btn kecil btn-koreksi" disabled
+              title="Tekan hanya jika gambar 3D berbeda dengan kubus di tanganmu, dan kubus di tanganmu sedang solved.">Gambar salah? Reset</button>
           </div>
-          <p id="acakan" class="acakan" hidden></p>
+
+          <!-- Pemandu acakan: gerakan berikutnya yang harus diputar -->
+          <div id="panduan" class="panduan" hidden aria-live="polite">
+            <div class="panduan-atas">
+              <div id="gerak-besar" class="gerak-besar" data-mode="normal" data-arah="cw">
+                <svg class="panah-putar" viewBox="0 0 48 48" aria-hidden="true">
+                  <path d="M24 6a18 18 0 1 1-17 12" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" />
+                  <path d="M3 12l4 7 7-4" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <span id="gerak-teks" class="gerak-teks"></span>
+              </div>
+              <div class="panduan-teks">
+                <p id="gerak-arah" class="gerak-arah"></p>
+                <p id="gerak-info" class="catatan"></p>
+              </div>
+            </div>
+            <p id="acakan" class="acakan"></p>
+          </div>
           <div id="player" class="player"><span class="catatan">Tampilan 3D muncul setelah kubus terhubung.</span></div>
           <div class="tombol-baris">
             <button type="button" id="btn-mulai" class="btn utama" disabled>Mulai solve</button>
@@ -49,6 +68,7 @@
             <div><dt>Gerakan</dt><dd id="live-gerakan">0</dd></div>
             <div><dt>TPS</dt><dd id="live-tps">0.00</dd></div>
           </dl>
+          <p id="kondisi-kubus" class="kondisi-kubus" hidden aria-live="polite"></p>
           <p id="daftar-gerakan" class="gerakan mono" aria-label="Daftar gerakan"></p>
         </section>
 
@@ -101,6 +121,23 @@
     </main>
 
     <footer class="wadah kaki">CubingCoach · <a href="metode.html">Cara Kerja</a></footer>
+
+    <!-- Layar perayaan saat kubus solved -->
+    <div id="selebrasi" class="selebrasi" hidden role="dialog" aria-modal="true" aria-labelledby="sel-judul">
+      <canvas id="konfeti" class="konfeti" aria-hidden="true"></canvas>
+      <div class="selebrasi-kartu">
+        <p class="eyebrow">Kubus solved</p>
+        <h2 id="sel-judul" class="sel-judul">Rubik selesai! 🎉</h2>
+        <p class="sel-waktu"><span id="sel-waktu-angka">0.00</span><small>detik</small></p>
+        <dl class="sel-statistik">
+          <div><dt>Gerakan</dt><dd id="sel-gerakan">0</dd></div>
+          <div><dt>TPS</dt><dd id="sel-tps">0</dd></div>
+          <div><dt>Skor</dt><dd id="sel-skor">0</dd></div>
+        </dl>
+        <p><span id="sel-kat" class="sel-kat"></span></p>
+        <button type="button" id="sel-tutup" class="btn utama lebar">Lihat hasil penilaian</button>
+      </div>
+    </div>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

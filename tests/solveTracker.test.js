@@ -1,6 +1,143 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { hitungStatistik, SolveTracker, pilihTimestamp } from "../src/cube/solveTracker.js";
-import { SmartCube } from "../src/cube/smartcube.js";
+import { SmartCube, pesanGalatKoneksi, faceletsSolved } from "../src/cube/smartcube.js";
+
+const SOLVED = "UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB";
+const ACAK = "UUUUUUUUFRRRRRRRRRFFFFFFFFUDDDDDDDDDLLLLLLLLLBBBBBBBBB";
+
+describe("faceletsSolved()", () => {
+  it("mengenali status solved dalam notasi Kociemba", () => {
+    expect(faceletsSolved(SOLVED)).toBe(true);
+    expect(faceletsSolved(ACAK)).toBe(false);
+    expect(faceletsSolved(null)).toBe(false);
+    expect(faceletsSolved("UUU")).toBe(false);
+  });
+});
+
+describe("kubus GAN model baru (gan-web-bluetooth) — tiruan", () => {
+  // Kubus GAN tiruan: membalas REQUEST_FACELETS dengan event FACELETS berisi status saat ini
+  function rangkaiGan() {
+    let hasil = null;
+    const perintah = [];
+    const tracker = new SolveTracker({ onSelesai: (h) => (hasil = h) });
+    const cube = new SmartCube({
+      onPutaran: (move, t, tLokal) => tracker.putaran(move, t, undefined, tLokal),
+      onCekSolved: async () => {
+        if (tracker.state !== "solving" || tracker.catatan.length <= 1) return;
+        tracker.cobaSelesaiOtomatis(await cube.cekSolved());
+      },
+    });
+    const kubus = { facelets: ACAK };
+    cube.gan = {
+      sendCubeCommand: async (cmd) => {
+        perintah.push(cmd.type);
+        if (cmd.type === "REQUEST_FACELETS") {
+          setTimeout(() => cube.terimaEventGan({ type: "FACELETS", facelets: kubus.facelets }), 1);
+        }
+      },
+    };
+    cube.statusDariKubus = true;
+    const gerak = (move, cubeTimestamp, faceletsSetelahnya = ACAK) => {
+      kubus.facelets = faceletsSetelahnya;
+      cube.terimaEventGan({ type: "MOVE", move, cubeTimestamp });
+    };
+    return { tracker, cube, gerak, perintah, hasil: () => hasil };
+  }
+
+  it("berhenti otomatis saat status stiker dari kubus solved", async () => {
+    const { tracker, gerak, perintah, hasil } = rangkaiGan();
+    tracker.mulai();
+    gerak("R", 1000);
+    await tunggu();
+    gerak("U", 1400);
+    await tunggu();
+    expect(tracker.state).toBe("solving");
+    gerak("U'", 1800, SOLVED);
+    await tunggu();
+    await vi.waitFor(() => expect(tracker.state).toBe("idle"));
+    expect(hasil().otomatis).toBe(true);
+    expect(hasil().moves).toEqual(["R", "U", "U'"]);
+    expect(perintah.filter((p) => p === "REQUEST_FACELETS").length).toBe(3);
+  });
+
+  it("status stiker lama tidak dipakai setelah ada putaran baru (tidak salah berhenti)", async () => {
+    const { tracker, cube, gerak } = rangkaiGan();
+    tracker.mulai();
+    gerak("R", 1000);
+    gerak("R'", 1300);
+    cube.faceletsTerakhir = SOLVED; // sisa status lama
+    gerak("U", 1600); // putaran baru → status lama harus dibuang
+    expect(await cube.cekSolved()).toBe(false);
+  });
+
+  it("gerakan GAN tanpa timestamp kubus → seluruh solve pakai jam browser", async () => {
+    const { tracker, gerak, hasil } = rangkaiGan();
+    tracker.mulai();
+    gerak("R", 1000);
+    gerak("U", null); // gerakan yang dipulihkan: cubeTimestamp null
+    await tunggu();
+    gerak("U'", 1800, SOLVED);
+    await tunggu();
+    await vi.waitFor(() => expect(hasil()?.otomatis).toBe(true));
+    expect(hasil().timestamps.every((t) => t === hasil().timestamps[0] || t > 0)).toBe(true);
+    expect(hasil().waktu).toBeLessThan(1); // jam browser (tes berjalan cepat), bukan 0.8 s jam kubus campur
+  });
+
+  it("cadangan: sensor kubus GAN melenceng, tapi pelacakan sejak 'Kubus sudah solved' tetap menghentikan timer", async () => {
+    const { cube3x3x3 } = await import("cubing/puzzles");
+    const { tracker, cube, gerak, hasil } = rangkaiGan();
+    cube.kpuzzle = await cube3x3x3.kpuzzle();
+    cube.tandaiSolved(); // kubus fisik solved; anggap kubus GAN mengabaikan reset (sensor tetap "teracak")
+    tracker.mulai();
+    gerak("R", 1000); // sensor kubus terus melaporkan ACAK
+    gerak("U", 1300);
+    await tunggu();
+    expect(tracker.state).toBe("solving");
+    gerak("U'", 1600);
+    gerak("R'", 1900); // kubus fisik kembali solved
+    await vi.waitFor(() => expect(tracker.state).toBe("idle"));
+    expect(hasil().moves).toEqual(["R", "U", "U'", "R'"]);
+  });
+
+  it("cadangan tetap jalan walaupun kubus GAN tidak pernah membalas dengan status stiker", async () => {
+    const { cube3x3x3 } = await import("cubing/puzzles");
+    const { tracker, cube, gerak, hasil } = rangkaiGan();
+    cube.gan.sendCubeCommand = async () => {}; // kubus diam: tidak ada event FACELETS sama sekali
+    cube.kpuzzle = await cube3x3x3.kpuzzle();
+    cube.tandaiSolved();
+    tracker.mulai();
+    gerak("F", 1000);
+    gerak("F'", 1400);
+    await vi.waitFor(() => expect(tracker.state).toBe("idle"));
+    expect(hasil().otomatis).toBe(true);
+    expect(await cube.kondisi()).toEqual({ sensor: null, cadangan: true, solved: true });
+  });
+
+  it("'Kubus sudah solved' mengirim REQUEST_RESET ke kubus GAN", () => {
+    const { cube, perintah } = rangkaiGan();
+    cube.kpuzzle = { defaultPattern: () => ({}) };
+    cube.tandaiSolved();
+    expect(perintah).toContain("REQUEST_RESET");
+  });
+});
+
+describe("pesanGalatKoneksi()", () => {
+  const galat = (message) => Object.assign(new Error(message), { name: "NotFoundError" });
+  it("NotFoundError karena jendela ditutup ≠ NotFoundError karena protokol tidak cocok", () => {
+    expect(pesanGalatKoneksi(galat("User cancelled the requestDevice() chooser."))).toMatch(/ditutup tanpa memilih/);
+    const protokol = pesanGalatKoneksi(
+      galat("No Services matching UUID 0000fff0-0000-1000-8000-00805f9b34fb found in Device."),
+    );
+    expect(protokol).toMatch(/protokol Bluetooth-nya tidak cocok/);
+    expect(protokol).toMatch(/Hubungkan GAN/);
+    expect(protokol).toMatch(/detail: No Services matching UUID/);
+  });
+  it("kasus lain tetap menampilkan detail asli", () => {
+    expect(pesanGalatKoneksi(galat("Bluetooth adapter not available."))).toMatch(/Bluetooth di perangkat ini mati/);
+    expect(pesanGalatKoneksi("Device did not have a GATT server.")).toMatch(/detail: Device did not have/);
+    expect(pesanGalatKoneksi(new Error("aneh"))).toBe("Gagal terhubung. (detail: aneh)");
+  });
+});
 
 // Kubus tiruan: meniru QiYi di cubing.js — status stiker diperbarui dulu,
 // lalu beberapa putaran dikirim berturut-turut dalam satu pesan.
@@ -52,7 +189,7 @@ describe("deteksi solved otomatis dari status kubus (tanpa tombol 'Kubus sudah s
     expect(tracker.state).toBe("solving");
     kubus.kirim([["U'", 1800]], true);
     await tunggu();
-    expect(tracker.state).toBe("idle");
+    await vi.waitFor(() => expect(tracker.state).toBe("idle"));
     expect(hasil().otomatis).toBe(true);
     expect(hasil().gerakan).toBe(3);
   });
@@ -66,7 +203,7 @@ describe("deteksi solved otomatis dari status kubus (tanpa tombol 'Kubus sudah s
     // QiYi mengirim ulang 3 putaran terakhir sekaligus, status akhirnya solved
     kubus.kirim([["R'", 1600], ["U'", 1900], ["F", 2200]], true);
     await tunggu();
-    expect(tracker.state).toBe("idle");
+    await vi.waitFor(() => expect(tracker.state).toBe("idle"));
     expect(hasil().moves).toEqual(["R", "U", "R'", "U'", "F"]);
     expect(hasil().waktu).toBeCloseTo(1.2, 5); // (2200 − 1000) / 1000
   });
