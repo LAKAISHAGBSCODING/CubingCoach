@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="description" content="Ukur performa solve rubik 3x3 kamu dan dapatkan saran latihan." />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>CubingCoach</title>
+  </head>
+  <body>
+    <header class="kepala">
+      <div class="wadah kepala-baris">
+        <div>
+          <a class="merek" href="./">CubingCoach</a>
+          <p class="sub">Ukur performa solve rubik 3x3 kamu dan dapatkan saran latihan.</p>
+        </div>
+        <nav class="nav-utama" aria-label="Navigasi utama">
+          <a href="./" aria-current="page">Beranda</a>
+          <a href="perhitungan.html">Perhitungan</a>
+          <a href="metode.html">Cara Kerja</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="wadah">
+      <div class="grid-atas satu" id="grid-atas">
+        <!-- 1. SOLVE DENGAN SMART CUBE -->
+        <section id="smartcube" class="kartu">
+          <div class="judul-baris">
+            <h2><span class="no">1</span> Solve dengan Smart Cube</h2>
+            <button type="button" id="btn-buka-manual" class="btn kecil" aria-controls="manual" aria-expanded="false">Input manual</button>
+          </div>
+          <p id="bt-status" class="status" data-jenis="info" role="status" aria-live="polite">Belum terhubung.</p>
+          <div class="tombol-baris">
+            <button type="button" id="btn-hubung" class="btn utama">Hubungkan kubus</button>
+            <button type="button" id="btn-solved" class="btn" disabled>Kubus sudah solved</button>
+            <button type="button" id="btn-acak" class="btn">Buat acakan</button>
+          </div>
+          <p id="acakan" class="acakan" hidden></p>
+          <div id="player" class="player"><span class="catatan">Tampilan 3D muncul setelah kubus terhubung.</span></div>
+          <div class="tombol-baris">
+            <button type="button" id="btn-mulai" class="btn utama" disabled>Mulai solve</button>
+            <button type="button" id="btn-selesai" class="btn" disabled>Selesai</button>
+            <span id="live-state" class="state" data-state="idle">idle</span>
+          </div>
+          <dl class="ringkas live">
+            <div><dt>Waktu</dt><dd id="live-waktu">0.00</dd></div>
+            <div><dt>Gerakan</dt><dd id="live-gerakan">0</dd></div>
+            <div><dt>TPS</dt><dd id="live-tps">0.00</dd></div>
+          </dl>
+          <p id="daftar-gerakan" class="gerakan mono" aria-label="Daftar gerakan"></p>
+        </section>
+
+        <!-- 2. INPUT MANUAL -->
+        <section id="manual" class="kartu" hidden>
+          <div class="judul-baris">
+            <h2><span class="no">2</span> Input Manual</h2>
+            <button type="button" id="btn-tutup-manual" class="btn kecil" aria-label="Tutup input manual">Tutup</button>
+          </div>
+          <p class="catatan">Tidak perlu Bluetooth. TPS dihitung otomatis = gerakan ÷ waktu.</p>
+          <form id="form-manual" novalidate>
+            <label class="field">
+              <span>Waktu solve (detik)</span>
+              <input type="number" name="waktu" step="any" min="0" inputmode="decimal" value="20" required />
+              <small class="galat" data-untuk="waktu"></small>
+            </label>
+            <label class="field">
+              <span>Jumlah gerakan</span>
+              <input type="number" name="gerakan" step="1" min="1" inputmode="numeric" value="70" required />
+              <small class="galat" data-untuk="gerakan"></small>
+            </label>
+            <label class="field">
+              <span>Rasio jeda (%)</span>
+              <input type="number" name="jeda" step="any" min="0" max="100" inputmode="decimal" value="20" required />
+              <small class="galat" data-untuk="jeda"></small>
+            </label>
+            <p class="tps-otomatis">TPS = <b id="tps-otomatis">3.50</b> putaran/detik</p>
+            <button type="submit" class="btn utama lebar">Nilai solve</button>
+          </form>
+        </section>
+      </div>
+
+      <!-- 3. HASIL PENILAIAN -->
+      <section id="hasil-bagian" class="kartu">
+        <h2><span class="no">3</span> Hasil Penilaian</h2>
+        <div id="hasil">
+          <p class="catatan">Belum ada penilaian. Lakukan solve dengan smart cube atau buka Input manual.</p>
+        </div>
+        <a id="link-cara" class="link-cara" href="perhitungan.html" hidden>Lihat cara skor ini dihitung →</a>
+      </section>
+
+      <!-- 4. RIWAYAT -->
+      <section id="riwayat-bagian" class="kartu">
+        <div class="judul-baris">
+          <h2><span class="no">4</span> Riwayat</h2>
+          <button type="button" id="btn-hapus" class="btn bahaya kecil">Hapus riwayat</button>
+        </div>
+        <div id="riwayat"></div>
+      </section>
+    </main>
+
+    <footer class="wadah kaki">CubingCoach · <a href="metode.html">Cara Kerja</a></footer>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

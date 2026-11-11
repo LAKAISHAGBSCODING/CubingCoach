@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="description" content="Cara kerja CubingCoach: logika fuzzy metode Mamdani untuk menilai performa solve rubik 3x3." />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>Cara Kerja · CubingCoach</title>
+  </head>
+  <body>
+    <header class="kepala">
+      <div class="wadah kepala-baris">
+        <div>
+          <a class="merek" href="./">CubingCoach</a>
+          <p class="sub">Cara kerja penilaian: logika fuzzy metode Mamdani.</p>
+        </div>
+        <nav class="nav-utama" aria-label="Navigasi utama">
+          <a href="./">Beranda</a>
+          <a href="perhitungan.html">Perhitungan</a>
+          <a href="metode.html" aria-current="page">Cara Kerja</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="wadah wadah-baca">
+      <!-- HERO -->
+      <section class="kartu hero">
+        <p class="eyebrow">Cara Kerja</p>
+        <h1>Bagaimana CubingCoach menilai solve kamu</h1>
+        <p class="lead">
+          Setiap solve diubah menjadi tiga angka, lalu dinilai seperti seorang pelatih menilai muridnya: tidak hitam-putih,
+          tetapi dengan derajat. Mesin penilainya adalah <b>logika fuzzy metode Mamdani</b> yang ditulis sendiri tanpa library.
+        </p>
+        <dl class="stat-hero">
+          <div><dt>Variabel input</dt><dd data-stat="input">3</dd></div>
+          <div><dt>Aturan (rule)</dt><dd data-stat="rule">27</dd></div>
+          <div><dt>Tahap Mamdani</dt><dd>5</dd></div>
+          <div><dt>Titik sampel centroid</dt><dd data-stat="sampel">201</dd></div>
+        </dl>
+        <div class="tombol-baris">
+          <a class="btn utama" href="perhitungan.html">Lihat detail perhitungan</a>
+          <a class="btn" href="#contoh-manual">Contoh hitungan manual</a>
+        </div>
+      </section>
+
+      <!-- 1. RINGKASAN -->
+      <section id="ringkasan" class="kartu bagian">
+        <p class="eyebrow">Bagian 1</p>
+        <h2>Ringkasan Sistem</h2>
+        <p>
+          CubingCoach menilai performa satu kali solve rubik 3x3 menggunakan logika fuzzy metode Mamdani. Sistem menerima
+          tiga input, yaitu kecepatan putaran (TPS), jumlah gerakan, dan rasio jeda, yang diambil otomatis dari smart cube
+          QiYi melalui Bluetooth atau dimasukkan secara manual. Ketiga input diolah melalui fuzzifikasi, inferensi dengan
+          <span data-jumlah-rule>27</span> aturan, agregasi, dan defuzzifikasi metode centroid, sehingga menghasilkan skor
+          performa 0–100, kategori (pemula, menengah, mahir), serta rekomendasi latihan.
+        </p>
+        <div class="alur-io" role="img" aria-label="Diagram: input tiga variabel, proses fuzzy Mamdani, output skor, kategori, dan rekomendasi">
+          <div class="kotak">
+            <span class="kotak-label">Input</span>
+            <b>3 variabel</b>
+            <span>TPS · Jumlah gerakan · Rasio jeda</span>
+            <span class="catatan">dari smart cube atau manual</span>
+          </div>
+          <span class="panah" aria-hidden="true"></span>
+          <div class="kotak utama">
+            <span class="kotak-label">Proses</span>
+            <b>Fuzzy Mamdani</b>
+            <span>fuzzifikasi → inferensi → komposisi → agregasi → centroid</span>
+          </div>
+          <span class="panah" aria-hidden="true"></span>
+          <div class="kotak">
+            <span class="kotak-label">Output</span>
+            <b>Skor 0–100</b>
+            <span>kategori + rekomendasi latihan</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. ALASAN -->
+      <section id="alasan" class="kartu bagian">
+        <p class="eyebrow">Bagian 2</p>
+        <h2>Mengapa Logika Fuzzy</h2>
+        <p>
+          Penilaian seperti "cepat", "efisien", atau "sering berhenti" tidak punya batas yang tegas. Dua solver dengan TPS
+          3,9 dan 4,1 praktis sama cepatnya, tetapi logika biasa (crisp) dengan satu garis batas akan memasukkan mereka ke
+          dua kategori yang berbeda, seolah-olah selisih 0,2 putaran per detik adalah perbedaan besar.
+        </p>
+        <div id="demo-crisp" class="demo-crisp"></div>
+        <p>
+          Logika fuzzy mengatasi hal ini dengan membolehkan satu nilai menjadi anggota beberapa kategori sekaligus,
+          masing-masing dengan <b>derajat keanggotaan</b> antara 0 dan 1. Cara ini mirip dengan cara seorang pelatih menilai
+          muridnya: "sudah cukup cepat, tapi masih sering berhenti", bukan sekadar lulus atau tidak lulus.
+        </p>
+        <p>
+          Topik ini juga dekat dengan kehidupan sehari-hari. Rubik adalah hobi yang populer, dan banyak pemain kesulitan
+          mengetahui kelemahannya secara objektif. Data dari smart cube memberikan angka, dan logika fuzzy mengubah angka
+          tersebut menjadi penilaian dan saran latihan yang mudah dipahami.
+        </p>
+        <div class="kotak-info">
+          <b>Mengapa Mamdani, bukan Sugeno atau Tsukamoto?</b>
+          Output Mamdani berupa himpunan linguistik (pemula, menengah, mahir) yang mudah ditafsirkan, dan aturannya ditulis
+          dalam bahasa sehari-hari ("JIKA cepat DAN efisien DAN jeda sedikit MAKA mahir"), sehingga mudah disusun dan
+          divalidasi bersama pakar cubing.
+        </div>
+      </section>
+
+      <!-- 3. DATA SMART CUBE -->
+      <section id="data" class="kartu bagian">
+        <p class="eyebrow">Bagian 3</p>
+        <h2>Dari Smart Cube ke Tiga Angka</h2>
+        <p>
+          Smart cube mengirim satu sinyal Bluetooth setiap kali sisi kubus diputar. Program mencatat waktu (timestamp)
+          setiap putaran, lalu menghitung tiga input dari daftar waktu tersebut. Contoh satu solve pendek:
+        </p>
+        <div id="timeline-contoh"></div>
+        <div id="rumus-statistik"></div>
+        <p class="catatan">
+          Tanpa smart cube, ketiga angka bisa dimasukkan lewat Input manual di Beranda (TPS dihitung dari gerakan ÷ waktu).
+        </p>
+      </section>
+
+      <!-- 4. METODE MAMDANI -->
+      <section id="metode" class="kartu bagian">
+        <p class="eyebrow">Bagian 4</p>
+        <h2>Metode Mamdani</h2>
+        <p>Perhitungan berjalan dalam lima tahap berurutan:</p>
+        <ol class="alur-tahap">
+          <li><span class="tahap-no">1</span><b>Fuzzifikasi</b><span>Nilai tegas → derajat keanggotaan.</span></li>
+          <li><span class="tahap-no">2</span><b>Inferensi</b><span>α tiap aturan, AND = MIN.</span></li>
+          <li><span class="tahap-no">3</span><b>Komposisi</b><span>α terbesar per himpunan output (MAX).</span></li>
+          <li><span class="tahap-no">4</span><b>Agregasi</b><span>Potong setinggi α, gabungkan (MAX).</span></li>
+          <li><span class="tahap-no">5</span><b>Defuzzifikasi</b><span>Centroid → satu skor.</span></li>
+        </ol>
+
+        <div class="tahap-detail">
+          <article>
+            <h3><span class="tahap-no">1</span> Fuzzifikasi</h3>
+            <p>Setiap nilai input dimasukkan ke fungsi keanggotaan trapesium [a, b, c, d] milik tiap himpunan. Hasilnya
+              derajat keanggotaan μ antara 0 (sama sekali bukan anggota) dan 1 (anggota penuh).</p>
+<pre class="rumus">μ(x) = 0                    jika x &lt; a atau x &gt; d
+     = 1                    jika b ≤ x ≤ c
+     = (x − a) / (b − a)    jika a ≤ x &lt; b     (sisi naik)
+     = (d − x) / (d − c)    jika c &lt; x ≤ d     (sisi turun)</pre>
+            <p class="catatan">Jika a = b, himpunan berbentuk bahu kiri (nilai ≤ a bernilai 1). Jika c = d, berbentuk bahu
+              kanan (nilai ≥ d bernilai 1). Input di luar semesta dibatasi (clamp) ke batas minimum/maksimum.</p>
+          </article>
+          <article>
+            <h3><span class="tahap-no">2</span> Inferensi (implikasi MIN)</h3>
+            <p>Setiap aturan memakai operator DAN. Dalam Mamdani, DAN dihitung dengan nilai minimum, karena sebuah aturan
+              hanya sekuat premis terlemahnya.</p>
+            <pre class="rumus">α_i = min(μ_TPS, μ_Gerakan, μ_Jeda)</pre>
+          </article>
+          <article>
+            <h3><span class="tahap-no">3</span> Komposisi (MAX)</h3>
+            <p>Beberapa aturan bisa mengarah ke himpunan output yang sama. Yang dipakai adalah aturan terkuat.</p>
+            <pre class="rumus">α_k = max(α_i untuk semua rule yang MAKA-nya k),   k ∈ {pemula, menengah, mahir}</pre>
+          </article>
+          <article>
+            <h3><span class="tahap-no">4</span> Agregasi (MAX)</h3>
+            <p>Setiap himpunan output dipotong setinggi α-nya, lalu ketiga potongan digabung menjadi satu kurva.</p>
+            <pre class="rumus">μ_agg(z) = max_k( min(α_k, μ_k(z)) )</pre>
+          </article>
+          <article>
+            <h3><span class="tahap-no">5</span> Defuzzifikasi (centroid)</h3>
+            <p>Kurva gabungan diubah menjadi satu angka, yaitu titik beratnya. Program menghitungnya secara diskrit pada
+              z = <span data-sampel>0, 0.5, …, 100</span>. Kategori akhir adalah himpunan output dengan μ(z*) terbesar.</p>
+            <pre class="rumus">z* = Σ(z · μ_agg(z)) / Σ μ_agg(z)        (jika Σμ = 0, skor = 0)</pre>
+          </article>
+        </div>
+      </section>
+
+      <!-- 5. VARIABEL -->
+      <section id="variabel" class="kartu bagian">
+        <p class="eyebrow">Bagian 5</p>
+        <h2>Variabel &amp; Himpunan Fuzzy</h2>
+        <p class="catatan">Tabel dan grafik di bawah dibangkitkan langsung dari <code>src/fuzzy/config.js</code>.</p>
+        <div id="daftar-variabel" class="grid-variabel"></div>
+      </section>
+
+      <!-- 6. RULE -->
+      <section id="rule" class="kartu bagian">
+        <p class="eyebrow">Bagian 6</p>
+        <h2>Basis Aturan</h2>
+        <p>
+          Setiap aturan berbentuk <b>JIKA</b> TPS = … <b>DAN</b> Gerakan = … <b>DAN</b> Jeda = … <b>MAKA</b> Skor = ….
+          Ada 3 × 3 × 3 = <span data-jumlah-rule>27</span> kombinasi. Konsekuen tiap aturan disusun dengan sistem poin
+          kualitas berikut, sehingga setiap aturan punya alasan yang bisa dijelaskan:
+        </p>
+        <div id="tabel-poin"></div>
+        <h3>Matriks 27 aturan</h3>
+        <p class="catatan">Satu tabel untuk tiap tingkat TPS. Baris = jumlah gerakan, kolom = rasio jeda, isi sel = konsekuen (nomor aturan).</p>
+        <div id="matriks-rule" class="grid-matriks"></div>
+      </section>
+
+      <!-- 7. REKOMENDASI -->
+      <section id="rekomendasi" class="kartu bagian">
+        <p class="eyebrow">Bagian 7</p>
+        <h2>Aturan Rekomendasi Latihan</h2>
+        <p>
+          Selain skor, program memberi saran latihan berdasarkan derajat keanggotaan input. Sebuah saran muncul jika
+          μ himpunan "lemah" mencapai ambang <b data-ambang>0.5</b>. Dalam satu kelompok, hanya saran pertama yang terpenuhi
+          yang ditampilkan.
+        </p>
+        <div id="tabel-rekomendasi"></div>
+      </section>
+
+      <!-- 8. CONTOH MANUAL -->
+      <section id="contoh-manual" class="kartu bagian">
+        <p class="eyebrow">Bagian 8</p>
+        <h2>Contoh Perhitungan Manual</h2>
+        <p>Kasus: <b>TPS = 3,5; Gerakan = 70; Jeda = 20%</b>.</p>
+        <div class="contoh-langkah">
+          <div>
+            <h3>Fuzzifikasi</h3>
+            <ul>
+              <li>TPS 3,5: lambat = 0; sedang = 1 (3 ≤ 3,5 ≤ 4); cepat = 0</li>
+              <li>Gerakan 70: efisien = 0; normal = 1 (65 ≤ 70 ≤ 75); boros = 0</li>
+              <li>Jeda 20: sedikit = (25 − 20)/(25 − 10) = 0,333; sedang = (20 − 10)/(25 − 10) = 0,667; banyak = 0</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Inferensi (rule aktif)</h3>
+            <ul>
+              <li>R14: sedang ∧ normal ∧ sedang → menengah, α = min(1; 1; 0,667) = 0,667</li>
+              <li>R15: sedang ∧ normal ∧ sedikit → menengah, α = min(1; 1; 0,333) = 0,333</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Komposisi</h3>
+            <p>α_menengah = max(0,667; 0,333) = 0,667; α_pemula = 0; α_mahir = 0</p>
+          </div>
+          <div>
+            <h3>Agregasi</h3>
+            <p>Himpunan menengah [25, 45, 55, 75] dipotong pada 0,667. Titik potong sisi naik: z = 25 + 0,667 × 20 = 38,33.
+              Sisi turun: z = 75 − 0,667 × 20 = 61,67.</p>
+          </div>
+          <div>
+            <h3>Defuzzifikasi</h3>
+            <p>Bentuk agregasi simetris terhadap z = 50, sehingga centroid = 50. Versi diskrit (langkah 0,5) di program:
+              z* = 2444,167 / 48,883 = 50,00.</p>
+          </div>
+          <div class="contoh-hasil">
+            <h3>Hasil</h3>
+            <p>Skor 50 → μ_menengah(50) = 1 → kategori <b>Menengah</b>.</p>
+          </div>
+        </div>
+        <a class="btn utama" href="perhitungan.html?tps=3.5&amp;gerakan=70&amp;jeda=20&amp;waktu=20&amp;sumber=contoh">Buka di halaman perhitungan</a>
+      </section>
+
+      <!-- 9. KODE -->
+      <section id="kode" class="kartu bagian">
+        <p class="eyebrow">Bagian 9</p>
+        <h2>Letak Logika Fuzzy di Kode</h2>
+        <p><b>Seluruh perhitungan fuzzy ditulis sendiri tanpa library fuzzy.</b> Modul <code>src/fuzzy/</code> tidak menyentuh
+          tampilan (DOM), sehingga bisa diuji terpisah dengan Vitest.</p>
+        <div class="tabel-wrap"><table>
+          <thead><tr><th>Tahap</th><th>File</th><th>Fungsi / konstanta</th></tr></thead>
+          <tbody>
+            <tr><td>Parameter himpunan &amp; rule</td><td class="mono">src/fuzzy/config.js</td><td class="mono">VARIABEL_INPUT, VARIABEL_OUTPUT, RULES</td></tr>
+            <tr><td>Fungsi keanggotaan trapesium</td><td class="mono">src/fuzzy/membership.js</td><td class="mono">trap()</td></tr>
+            <tr><td>Fuzzifikasi</td><td class="mono">src/fuzzy/membership.js</td><td class="mono">fuzzifikasi(), clamp()</td></tr>
+            <tr><td>Inferensi, komposisi, agregasi, centroid, kategori</td><td class="mono">src/fuzzy/mamdani.js</td><td class="mono">infer()</td></tr>
+            <tr><td>Rekomendasi</td><td class="mono">src/fuzzy/recommendation.js</td><td class="mono">buatRekomendasi(), ATURAN_REKOMENDASI</td></tr>
+            <tr><td>Pengambilan input dari smart cube (TPS &amp; jeda)</td><td class="mono">src/cube/solveTracker.js</td><td class="mono">hitungStatistik()</td></tr>
+            <tr><td>Pengujian</td><td class="mono">tests/*.test.js</td><td class="mono">npx vitest run</td></tr>
+          </tbody>
+        </table></div>
+        <details class="kode-blok" open>
+          <summary><code>trap()</code> — src/fuzzy/membership.js</summary>
+          <pre><code id="kode-trap"></code></pre>
+        </details>
+        <details class="kode-blok">
+          <summary><code>infer()</code> — src/fuzzy/mamdani.js (lengkap)</summary>
+          <pre><code id="kode-infer"></code></pre>
+        </details>
+      </section>
+
+      <!-- 10. KETENTUAN -->
+      <section id="ketentuan" class="kartu bagian">
+        <p class="eyebrow">Bagian 10</p>
+        <h2>Pemenuhan Ketentuan Tugas</h2>
+        <div class="tabel-wrap"><table>
+          <thead><tr><th>Ketentuan UAS</th><th>Pemenuhan di CubingCoach</th></tr></thead>
+          <tbody class="bungkus-semua">
+            <tr><td>Program aplikasi berbasis Fuzzy Logic</td><td>Aplikasi web; inti penilaian memakai logika fuzzy (<code>src/fuzzy/</code>)</td></tr>
+            <tr><td>Metode: Mamdani / Sugeno / Tsukamoto</td><td>Mamdani (MIN–MAX, defuzzifikasi centroid)</td></tr>
+            <tr><td>Input jelas</td><td>3 input: TPS, jumlah gerakan, rasio jeda (dari smart cube atau manual)</td></tr>
+            <tr><td>Proses perhitungan fuzzy jelas</td><td>Fuzzifikasi → inferensi <span data-jumlah-rule>27</span> rule → komposisi → agregasi → centroid, seluruhnya ditampilkan di halaman <a href="perhitungan.html">Detail Perhitungan</a></td></tr>
+            <tr><td>Output jelas</td><td>Skor 0–100, kategori linguistik, rekomendasi latihan</td></tr>
+            <tr><td>Topik relevan dengan kehidupan sehari-hari</td><td>Evaluasi latihan hobi rubik/speedcubing</td></tr>
+            <tr><td>Kelompok 4 orang</td><td>Lihat bagian <a href="#tim">Tim Pengembang</a></td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <!-- 11. REFERENSI -->
+      <section id="referensi" class="kartu bagian">
+        <p class="eyebrow">Bagian 11</p>
+        <h2>Referensi &amp; Sumber Kepakaran</h2>
+        <div id="daftar-referensi"></div>
+      </section>
+
+      <!-- 12. TIM -->
+      <section id="tim" class="kartu bagian">
+        <p class="eyebrow">Bagian 12</p>
+        <h2>Tim Pengembang</h2>
+        <div id="daftar-tim" class="grid-tim"></div>
+      </section>
+    </main>
+
+    <footer class="wadah kaki">CubingCoach · <a href="./">Beranda</a> · <a href="perhitungan.html">Detail Perhitungan</a></footer>
+    <script type="module" src="/src/metode.js"></script>
+  </body>
+</html>

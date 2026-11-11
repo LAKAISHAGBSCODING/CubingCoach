@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="description" content="Detail perhitungan fuzzy Mamdani untuk satu solve rubik 3x3, langkah demi langkah." />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>Detail Perhitungan · CubingCoach</title>
+  </head>
+  <body>
+    <header class="kepala">
+      <div class="wadah kepala-baris">
+        <div>
+          <a class="merek" href="./">CubingCoach</a>
+          <p class="sub">Detail perhitungan skor, langkah demi langkah.</p>
+        </div>
+        <nav class="nav-utama" aria-label="Navigasi utama">
+          <a href="./">Beranda</a>
+          <a href="perhitungan.html" aria-current="page">Perhitungan</a>
+          <a href="metode.html">Cara Kerja</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="wadah">
+      <!-- Sumber data + ringkasan hasil -->
+      <section class="kartu hero-hitung">
+        <div class="hero-hitung-teks">
+          <p class="eyebrow">Fuzzy Mamdani · 7 langkah</p>
+          <h1>Detail Perhitungan</h1>
+          <p class="lead">Semua angka di halaman ini dihitung langsung oleh program dari data solve, bukan contoh statis.
+            Teori lengkapnya ada di halaman <a href="metode.html">Cara Kerja</a>.</p>
+
+          <div class="segmen" role="tablist" aria-label="Sumber data">
+            <button type="button" role="tab" data-mode="terakhir" aria-selected="true">Solve terakhir</button>
+            <button type="button" role="tab" data-mode="riwayat" aria-selected="false">Dari riwayat</button>
+            <button type="button" role="tab" data-mode="coba" aria-selected="false">Coba sendiri</button>
+          </div>
+          <div class="panel-sumber">
+            <p data-panel="terakhir" id="info-terakhir" class="catatan"></p>
+            <div data-panel="riwayat" hidden>
+              <label class="field">
+                <span>Pilih solve dari riwayat</span>
+                <select id="pilih-riwayat"></select>
+              </label>
+            </div>
+            <div data-panel="coba" hidden class="slider-grup">
+              <label class="slider-baris">
+                <span>TPS</span>
+                <input type="range" data-slider="tps" />
+                <input type="number" data-angka="tps" inputmode="decimal" aria-label="TPS" />
+              </label>
+              <label class="slider-baris">
+                <span>Gerakan</span>
+                <input type="range" data-slider="gerakan" />
+                <input type="number" data-angka="gerakan" inputmode="numeric" aria-label="Jumlah gerakan" />
+              </label>
+              <label class="slider-baris">
+                <span>Jeda (%)</span>
+                <input type="range" data-slider="jeda" />
+                <input type="number" data-angka="jeda" inputmode="decimal" aria-label="Rasio jeda" />
+              </label>
+            </div>
+          </div>
+        </div>
+        <div id="ringkas-skor" class="ringkas-skor" aria-live="polite"></div>
+      </section>
+
+      <!-- Peta langkah -->
+      <ol class="peta-langkah" aria-label="Langkah perhitungan">
+        <li><a href="#langkah-1">Input</a></li>
+        <li><a href="#langkah-2">Fuzzifikasi</a></li>
+        <li><a href="#langkah-3">Inferensi</a></li>
+        <li><a href="#langkah-4">Komposisi</a></li>
+        <li><a href="#langkah-5">Agregasi</a></li>
+        <li><a href="#langkah-6">Defuzzifikasi</a></li>
+        <li><a href="#langkah-7">Output</a></li>
+      </ol>
+
+      <section id="langkah-1" class="kartu langkah">
+        <h2><span class="no">1</span> Input tegas</h2>
+        <p class="catatan">Nilai crisp yang masuk ke sistem. Nilai di luar semesta dibatasi (clamp) ke batasnya.</p>
+        <div id="sim-input"></div>
+      </section>
+
+      <section id="langkah-2" class="kartu langkah">
+        <h2><span class="no">2</span> Fuzzifikasi</h2>
+        <p class="catatan">Nilai tegas diubah menjadi derajat keanggotaan μ (0–1) pada tiap himpunan dengan fungsi trapesium.
+          Garis putus-putus = nilai input; titik = μ.</p>
+        <div id="sim-fuzz" class="grid-fuzz"></div>
+      </section>
+
+      <section id="langkah-3" class="kartu langkah">
+        <h2><span class="no">3</span> Inferensi (implikasi MIN)</h2>
+        <p class="catatan">Kekuatan tiap aturan: α<sub>i</sub> = min(μ<sub>TPS</sub>, μ<sub>Gerakan</sub>, μ<sub>Jeda</sub>). Aturan dengan α &gt; 0 disebut aktif.</p>
+        <div class="tombol-baris">
+          <label class="toggle"><input type="checkbox" id="semua-rule" /> Tampilkan semua 27 rule</label>
+          <span id="sim-jumlah-aktif" class="catatan"></span>
+        </div>
+        <div id="sim-rules"></div>
+      </section>
+
+      <section id="langkah-4" class="kartu langkah">
+        <h2><span class="no">4</span> Komposisi (MAX)</h2>
+        <p class="catatan">Untuk tiap himpunan output, diambil α terbesar dari aturan yang mengarah ke himpunan tersebut.</p>
+        <ul id="sim-komposisi" class="komposisi"></ul>
+      </section>
+
+      <section id="langkah-5" class="kartu langkah">
+        <h2><span class="no">5</span> Agregasi</h2>
+        <p class="catatan">μ<sub>agg</sub>(z) = max<sub>k</sub>( min(α<sub>k</sub>, μ<sub>k</sub>(z)) ). Garis putus = himpunan output asli ·
+          area berwarna = setelah dipotong α · garis tebal = μ<sub>agg</sub>(z) · garis tegak = z*.</p>
+        <div class="legenda" id="sim-legenda"></div>
+        <canvas id="sim-grafik-output" class="grafik besar" role="img" aria-label="Grafik agregasi output dan centroid"></canvas>
+      </section>
+
+      <section id="langkah-6" class="kartu langkah">
+        <h2><span class="no">6</span> Defuzzifikasi (centroid)</h2>
+        <div id="sim-centroid"></div>
+      </section>
+
+      <section id="langkah-7" class="kartu langkah">
+        <h2><span class="no">7</span> Output</h2>
+        <div id="sim-output"></div>
+      </section>
+    </main>
+
+    <footer class="wadah kaki">CubingCoach · <a href="./">Beranda</a> · <a href="metode.html">Cara Kerja</a></footer>
+    <script type="module" src="/src/perhitungan.js"></script>
+  </body>
+</html>
